@@ -23,7 +23,7 @@ contract attackerMulticall {
             Result memory result = returnData[i];
             _call = calls[i];
             (result.success, result.returnData) = _call.target.call(_call.callData);
-            // If is allowed to failed - Don't stop even it is failed. 
+            // If is allowed to fail - Don't stop even if it is failed. 
             if (!_call.allowedToBeFailed) require(result.success, "Multicall3: call failed");
             unchecked { ++i; }
         }

