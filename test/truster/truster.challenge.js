@@ -80,7 +80,7 @@ describe('[Challenge] Truster', function () {
     it("Exploit in a single transaction", async function () {
       /** CODE YOUR EXPLOIT HERE  */
       // Deploy attacker contract here.
-      const _attacker = await ethers.getContractFactory("attacker", attacker);
+      const _attacker = await ethers.getContractFactory("hackTruster", attacker);
       this.attacker_contract = await _attacker.deploy(this.token.address);
       await this.attacker_contract.hackit(this.pool.address, attacker.address);
     });

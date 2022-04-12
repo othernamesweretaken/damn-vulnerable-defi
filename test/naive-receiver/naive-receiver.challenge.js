@@ -78,7 +78,10 @@ describe('[Challenge] Naive receiver', function () {
     it('Exploit in single transaction', async function () {
         /** CODE YOUR EXPLOIT HERE */ 
         
-        const attackerContractFactory  = await ethers.getContractFactory('attackerMulticall', attacker);
+        const attackerContractFactory = await ethers.getContractFactory(
+          "hackNaiveReceiver",
+          attacker
+        );
         const lendFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', attacker);
         const target = this.pool.address;
         let structCallData = [];

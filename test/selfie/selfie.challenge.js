@@ -32,7 +32,8 @@ describe('[Challenge] Selfie', function () {
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
         const AttackerContractFactory = await ethers.getContractFactory(
-          "SelfiePoolHack", attacker
+          "hackSelfie",
+          attacker
         );
         this.attackContract = await AttackerContractFactory.deploy(this.governance.address);
         await this.attackContract.hackIt(this.pool.address, TOKENS_IN_POOL);
